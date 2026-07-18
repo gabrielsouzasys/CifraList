@@ -1,273 +1,535 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cifras - 18 de Julho</title>
-<style>
-  :root{
-    --bg:#121212; --panel:#1c1c1c; --panel2:#242424; --text:#f0f0f0;
-    --muted:#9a9a9a; --accent:#a855f7; --accent2:#7c3aed; --border:#333;
-    --highlight:#facc15;
-  }
-  body.light{
-    --bg:#f7f7f8; --panel:#ffffff; --panel2:#f0f0f2;
-    --text:#1a1a1a; --muted:#666; --border:#ddd;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden;
-  }
-  /* Sidebar */
-  #sidebar{
-    width:300px; min-width:220px; background:var(--panel); border-right:1px solid var(--border);
-    display:flex; flex-direction:column; transition:margin-left .25s ease;
-  }
-  #sidebar.collapsed{ margin-left:-300px; }
-  #sidebar h1{ font-size:15px; padding:14px 16px 8px; margin:0; color:var(--muted); letter-spacing:.5px; text-transform:uppercase;}
-  #songlist{ list-style:none; margin:0; padding:0 8px 16px; overflow-y:auto; flex:1; }
-  #songlist li{
-    padding:10px 10px; border-radius:8px; cursor:pointer; margin-bottom:4px;
-    display:flex; justify-content:space-between; align-items:center; gap:8px;
-  }
-  #songlist li:hover{ background:var(--panel2); }
-  #songlist li.active{ background:var(--accent2); color:#fff; }
-  #songlist li .num{ color:var(--muted); font-size:12px; width:22px; flex-shrink:0; }
-  #songlist li.active .num{ color:#e9d5ff; }
-  #songlist li .info{ flex:1; min-width:0; }
-  #songlist li .title{ font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #songlist li .artist{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #songlist li.active .artist{ color:#ddd6fe; }
-  #songlist li .tom{ font-size:11px; font-weight:700; background:var(--panel2); padding:2px 6px; border-radius:5px; flex-shrink:0; }
-  #songlist li.active .tom{ background:rgba(255,255,255,.2); color:#fff;}
-  #songlist li.filled::after{ content:""; width:6px; height:6px; border-radius:50%; background:#22c55e; flex-shrink:0; }
-  #songlist li.empty::after{ content:""; width:6px; height:6px; border-radius:50%; background:#555; flex-shrink:0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cifras - 18 de Julho</title>
+    <style>
+        :root {
+            --bg: #121212;
+            --panel: #1c1c1c;
+            --panel2: #242424;
+            --text: #f0f0f0;
+            --muted: #9a9a9a;
+            --accent: #a855f7;
+            --accent2: #7c3aed;
+            --border: #333;
+            --highlight: #facc15;
+        }
 
-  /* Main */
-  #main{ flex:1; display:flex; flex-direction:column; min-width:0; }
-  header{
-    padding:12px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px;
-    background:var(--panel);
-  }
-  header button.icon{
-    background:none; border:none; color:var(--text); font-size:20px; cursor:pointer; padding:6px 10px; border-radius:6px;
-  }
-  header button.icon:hover{ background:var(--panel2); }
-  #song-title-block{ flex:1; min-width:0; }
-  #song-title-block h2{ margin:0; font-size:18px; }
-  #song-title-block .sub{ font-size:13px; color:var(--muted); margin-top:2px; }
-  .badge{
-    font-weight:700; font-size:14px; background:var(--panel2); border:1px solid var(--border);
-    padding:5px 12px; border-radius:8px; white-space:nowrap;
-  }
-  header a.origlink{ color:var(--accent); text-decoration:none; font-size:13px; white-space:nowrap; }
-  header a.origlink:hover{ text-decoration:underline; }
+        body.light {
+            --bg: #f7f7f8;
+            --panel: #ffffff;
+            --panel2: #f0f0f2;
+            --text: #1a1a1a;
+            --muted: #666;
+            --border: #ddd;
+        }
 
-  #content{ flex:1; overflow-y:auto; padding:24px 32px; }
-  #cifra-view{
-    white-space:pre-wrap; font-family:'Courier New', monospace; line-height:1.6;
-    font-size: var(--fontsize, 18px); max-width:900px;
-  }
-  #cifra-view .chord{ color:#ef4444; font-weight:700; }
-  #cifra-edit{
-    width:100%; max-width:900px; height:60vh; background:var(--panel); color:var(--text);
-    border:1px solid var(--border); border-radius:8px; padding:16px; font-family:'Courier New', monospace;
-    font-size:15px; line-height:1.5; resize:vertical;
-  }
-  .empty-state{ color:var(--muted); max-width:600px; }
-  .empty-state h3{ color:var(--text); }
-  .empty-state ol{ padding-left:20px; line-height:1.8; }
-  .empty-state a{ color:var(--accent); }
+        * {
+            box-sizing: border-box;
+        }
 
-  footer{
-    padding:12px 20px; border-top:1px solid var(--border); background:var(--panel);
-    display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
-  }
-  .navbtn{
-    background:var(--accent2); color:#fff; border:none; padding:10px 18px; border-radius:8px;
-    cursor:pointer; font-size:14px; font-weight:600; display:flex; align-items:center; gap:6px;
-  }
-  .navbtn:hover{ background:var(--accent); }
-  .navbtn:disabled{ opacity:.35; cursor:default; }
-  .navbtn.secondary{ background:var(--panel2); color:var(--text); border:1px solid var(--border); }
-  .toolgroup{ display:flex; gap:6px; align-items:center; }
-  .toolgroup button{
-    background:var(--panel2); color:var(--text); border:1px solid var(--border); padding:8px 12px;
-    border-radius:6px; cursor:pointer; font-size:13px;
-  }
-  .toolgroup button:hover{ background:var(--border); }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-  /* Mobile */
-  @media (max-width:760px){
-    #sidebar{ position:fixed; z-index:20; height:100%; }
-    #content{ padding:16px; }
-    header{ padding:10px 12px; }
-    #song-title-block h2{ font-size:16px; }
-  }
-</style>
+        /* Sidebar */
+        #sidebar {
+            width: 300px;
+            min-width: 220px;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: margin-left .25s ease;
+        }
+
+        #sidebar.collapsed {
+            margin-left: -300px;
+        }
+
+        #sidebar h1 {
+            font-size: 15px;
+            padding: 14px 16px 8px;
+            margin: 0;
+            color: var(--muted);
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+
+        #songlist {
+            list-style: none;
+            margin: 0;
+            padding: 0 8px 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #songlist li {
+            padding: 10px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #songlist li:hover {
+            background: var(--panel2);
+        }
+
+        #songlist li.active {
+            background: var(--accent2);
+            color: #fff;
+        }
+
+        #songlist li .num {
+            color: var(--muted);
+            font-size: 12px;
+            width: 22px;
+            flex-shrink: 0;
+        }
+
+        #songlist li.active .num {
+            color: #e9d5ff;
+        }
+
+        #songlist li .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #songlist li .title {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #songlist li .artist {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #songlist li.active .artist {
+            color: #ddd6fe;
+        }
+
+        #songlist li .tom {
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--panel2);
+            padding: 2px 6px;
+            border-radius: 5px;
+            flex-shrink: 0;
+        }
+
+        #songlist li.active .tom {
+            background: rgba(255, 255, 255, .2);
+            color: #fff;
+        }
+
+        #songlist li.filled::after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #22c55e;
+            flex-shrink: 0;
+        }
+
+        #songlist li.empty::after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #555;
+            flex-shrink: 0;
+        }
+
+        /* Main */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        header {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--panel);
+        }
+
+        header button.icon {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        header button.icon:hover {
+            background: var(--panel2);
+        }
+
+        #song-title-block {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #song-title-block h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        #song-title-block .sub {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .badge {
+            font-weight: 700;
+            font-size: 14px;
+            background: var(--panel2);
+            border: 1px solid var(--border);
+            padding: 5px 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        header a.origlink {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        header a.origlink:hover {
+            text-decoration: underline;
+        }
+
+        #content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px;
+        }
+
+        #cifra-view {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            font-size: var(--fontsize, 18px);
+            max-width: 900px;
+        }
+
+        #cifra-view .chord {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        #cifra-edit {
+            width: 100%;
+            max-width: 900px;
+            height: 60vh;
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
+        .empty-state {
+            color: var(--muted);
+            max-width: 600px;
+        }
+
+        .empty-state h3 {
+            color: var(--text);
+        }
+
+        .empty-state ol {
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        .empty-state a {
+            color: var(--accent);
+        }
+
+        footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .navbtn {
+            background: var(--accent2);
+            color: #fff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .navbtn:hover {
+            background: var(--accent);
+        }
+
+        .navbtn:disabled {
+            opacity: .35;
+            cursor: default;
+        }
+
+        .navbtn.secondary {
+            background: var(--panel2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .toolgroup {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .toolgroup button {
+            background: var(--panel2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .toolgroup button:hover {
+            background: var(--border);
+        }
+
+        /* Mobile */
+        @media (max-width:760px) {
+            #sidebar {
+                position: fixed;
+                z-index: 20;
+                height: 100%;
+            }
+
+            #content {
+                padding: 16px;
+            }
+
+            header {
+                padding: 10px 12px;
+            }
+
+            #song-title-block h2 {
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<div id="sidebar">
-  <h1>Repertório · 18 Julho</h1>
-  <ul id="songlist"></ul>
-</div>
+    <div id="sidebar">
+        <div>
+            <!-- <button class="icon" id="toggleSidebar" title="Mostrar/ocultar lista">☰</button> -->
+            <h1>Repertório</h1>
+        </div>
 
-<div id="main">
-  <header>
-    <button class="icon" id="toggleSidebar" title="Mostrar/ocultar lista">☰</button>
-    <div id="song-title-block">
-      <h2 id="titleText">-</h2>
-      <div class="sub" id="artistText">-</div>
+        <ul id="songlist"></ul>
     </div>
-    <span class="badge" id="tomBadge">Tom: -</span>
-    <a class="origlink" id="origLink" href="#" target="_blank" rel="noopener">Abrir no Cifra Club ↗</a>
-  </header>
 
-  <div id="content">
-    <div id="cifra-view"></div>
-    <textarea id="cifra-edit" style="display:none;" placeholder="Cola aqui a cifra completa (letra + acordes) copiada do Cifra Club..."></textarea>
-  </div>
+    <div id="main">
+        <header>
+            <div id="song-title-block">
+                <h2 id="titleText">-</h2>
+                <div class="sub" id="artistText">-</div>
+            </div>
+            <button class="icon" id="toggleSidebar" title="Mostrar/ocultar lista">☰</button>
+            <span class="badge" id="tomBadge">Tom: -</span>
+            <a class="origlink" id="origLink" href="#" target="_blank" rel="noopener">Abrir no Cifra Club ↗</a>
+        </header>
 
-  <footer>
-    <button class="navbtn secondary" id="prevBtn">← Anterior</button>
-    <div class="toolgroup">
-      <button id="editBtn">✎ Editar / Colar cifra</button>
-      <button id="saveBtn" style="display:none;">💾 Guardar</button>
-      <button id="cancelBtn" style="display:none;">Cancelar</button>
-      <button id="fontMinus">A−</button>
-      <button id="fontPlus">A+</button>
-      <button id="themeBtn">🌙/☀️</button>
-      <button id="exportBtn">⬇ Exportar CSV</button>
-      <button id="importBtn">⬆ Importar CSV</button>
-      <input type="file" id="importFile" accept=".csv" style="display:none;">
+        <div id="content">
+            <div id="cifra-view"></div>
+            <textarea id="cifra-edit" style="display:none;"
+                placeholder="Cola aqui a cifra completa (letra + acordes) copiada do Cifra Club..."></textarea>
+        </div>
+
+        <footer>
+            <button class="navbtn secondary" id="prevBtn">← Anterior</button>
+            <div class="toolgroup">
+                <button id="editBtn">✎ Editar / Colar cifra</button>
+                <button id="saveBtn" style="display:none;">💾 Guardar</button>
+                <button id="cancelBtn" style="display:none;">Cancelar</button>
+                <button id="fontMinus">A−</button>
+                <button id="fontPlus">A+</button>
+                <button id="themeBtn">🌙/☀️</button>
+                <button id="exportBtn">⬇ Exportar CSV</button>
+                <button id="importBtn">⬆ Importar CSV</button>
+                <input type="file" id="importFile" accept=".csv" style="display:none;">
+            </div>
+            <button class="navbtn" id="nextBtn">Seguinte →</button>
+        </footer>
     </div>
-    <button class="navbtn" id="nextBtn">Seguinte →</button>
-  </footer>
-</div>
 
-<script>
-// ---- Lista de músicas (ordem do dia 18 de Julho) ----
-const songs = [
-  {title:"Toda Terra", artist:"Gabriela Rocha", tom:"E", capo:"", url:"https://www.cifraclub.com.br/gabriela-rocha/toda-terra-ao-vivo/#key=E"},
-  {title:"Teu Reino", artist:"Ministério Cristo Vivo", tom:"E", capo:"", url:"https://www.cifraclub.com.br/ministerio-cristo-vivo/teu-reino/#key=F%23"},
-  {title:"Santo Espírito", artist:"Laura Souguellis", tom:"E", capo:"2ª casa (som em D)", url:"https://www.cifraclub.com.br/laura-souguellis/santo-espirito/#key=D&capo=2"},
-  {title:"Clamo Jesus", artist:"Paulo César Baruk part. Marcena", tom:"E", capo:"", url:"https://www.cifraclub.com.br/paulo-cesar-baruk/clamo-jesus/#key=E", destaque:true},
-  {title:"Fogo Que Consome", artist:"Carol Braga", tom:"E", capo:"", url:"https://www.cifraclub.com.br/carol-braga/fogo-que-consome/#key=E"},
-  {title:"Fogo em Teus Olhos", artist:"Louvor IIR", tom:"Em", capo:"", url:"https://www.cifraclub.com.br/louvor-iir/fogo-em-teus-olhos/#key=Em"},
-  {title:"Que Amor É Esse", artist:"Luma Elpidio", tom:"G", capo:"", url:"https://www.cifraclub.com.br/luma-elpidio/que-amor--esse/#key=G"},
-  {title:"Ousado Amor", artist:"Emi Sousa", tom:"G", capo:"3ª casa", url:"https://www.cifraclub.com.br/emi-sousa-fhop/ousado-amor/#key=G&capo=3"},
-  {title:"Me Atraiu", artist:"Gabriela Rocha", tom:"G", capo:"", url:"https://www.cifraclub.com.br/gabriela-rocha/me-atraiu/#key=G"},
-  {title:"Canção do Apocalipse", artist:"Ministério Avivah", tom:"G", capo:"", url:"https://www.cifraclub.com.br/ministerio-avivah/cancao-do-apocalipse/#key=G"},
-  {title:"Digno de Tudo / Te Exaltamos", artist:"Emaús Music / Adoração Central", tom:"C", capo:"", url:"https://www.cifraclub.com.br/adoracao-central/digno-de-tudo-te-exaltamos/#key=G"},
-  {title:"Só Quero Ver Você", artist:"Laura Souguellis", tom:"C", capo:"", url:"https://www.cifraclub.com.br/laura-souguellis/so-quero-ver-voce/#key=C"},
-  {title:"Fez Um Caminho", artist:"Louvor IIR", tom:"C", capo:"", url:"https://www.cifraclub.com.br/louvor-iir/fez-um-caminho/#key=C", destaque:true},
-  {title:"Primavera", artist:"Louvor IIR", tom:"C", capo:"", url:"https://www.cifraclub.com.br/iir-music/primavera/#key=C", destaque:true},
-  {title:"Somos Um", artist:"Salzband", tom:"D", capo:"", url:"https://www.cifraclub.com.br/salz-band/somos-um/#key=D"},
-  {title:"Yeshua", artist:"José Jr.", tom:"D", capo:"", url:"https://www.cifraclub.com.br/jose-augusto-five-music/yeshua/#key=Eb"},
-  {title:"Poder Pra Salvar", artist:"Hillsong United (Aline Barros)", tom:"A", capo:"", url:"https://www.cifraclub.com.br/aline-barros/poder-pra-salvar/#key=E"},
-  {title:"Que Se Abram os Céus", artist:"Nívea Soares", tom:"A", capo:"", url:"https://www.cifraclub.com.br/nivea-soares/que-se-abra-os-ceus/#key=A"},
-  {title:"Até Que o Senhor Venha", artist:"Ministério Zoe", tom:"Am", capo:"", url:"https://www.cifraclub.com.br/ministerio-zoe/ate-que-o-senhor-venha/#key=C%23m"},
-  {title:"Ruja o Leão / Povo Se Preparem (Fhop)", artist:"Thalita Catanzaro / FHOP", tom:"F#m", capo:"", url:"https://www.cifraclub.com.br/talita-catanzaro/ruja-o-leao/#key=F%23m"},
-  {title:"Yeshua My Beloved", artist:"Jesus Image Worship", tom:"F", capo:"", url:"https://www.cifraclub.com.br/musica/yeshua-my-beloved/"}
-];
+    <script>
+        // ---- Lista de músicas (ordem do dia 18 de Julho) ----
+        const songs = [
+            {title: "Somos Um", artist: "Salzband", tom: "D", capo: "", url: "https://www.cifraclub.com.br/salz-band/somos-um/#key=D"},
+            {title: "Poder Pra Salvar", artist: "Hillsong United (Aline Barros)", tom: "A", capo: "", url: "https://www.cifraclub.com.br/aline-barros/poder-pra-salvar/#key=E"},
+            {title: "Clamo Jesus", artist: "Paulo César Baruk part. Marcena", tom: "E", capo: "", url: "https://www.cifraclub.com.br/paulo-cesar-baruk/clamo-jesus/#key=E", destaque: true},
+            {title: "Toda Terra", artist: "Gabriela Rocha", tom: "E", capo: "", url: "https://www.cifraclub.com.br/gabriela-rocha/toda-terra-ao-vivo/#key=E"},
+            {title: "Fogo em Teus Olhos", artist: "Louvor IIR", tom: "Em", capo: "", url: "https://www.cifraclub.com.br/louvor-iir/fogo-em-teus-olhos/#key=Em"},
+            {title: "Que Amor É Esse", artist: "Luma Elpidio", tom: "G", capo: "", url: "https://www.cifraclub.com.br/luma-elpidio/que-amor--esse/#key=G"},
+            {title: "Me Atraiu", artist: "Gabriela Rocha", tom: "G", capo: "", url: "https://www.cifraclub.com.br/gabriela-rocha/me-atraiu/#key=G"},
+            {title: "Canção do Apocalipse", artist: "Ministério Avivah", tom: "G", capo: "", url: "https://www.cifraclub.com.br/ministerio-avivah/cancao-do-apocalipse/#key=G"},
+            {title: "Digno de Tudo / Te Exaltamos", artist: "Emaús Music / Adoração Central", tom: "C", capo: "", url: "https://www.cifraclub.com.br/adoracao-central/digno-de-tudo-te-exaltamos/#key=G"},
+            {title: "Fez Um Caminho", artist: "Louvor IIR", tom: "C", capo: "", url: "https://www.cifraclub.com.br/louvor-iir/fez-um-caminho/#key=C", destaque: true},
+            {title: "Primavera", artist: "Louvor IIR", tom: "C", capo: "", url: "https://www.cifraclub.com.br/iir-music/primavera/#key=C", destaque: true},
+            {title: "Que Se Abram os Céus", artist: "Nívea Soares", tom: "A", capo: "", url: "https://www.cifraclub.com.br/nivea-soares/que-se-abra-os-ceus/#key=A"},
+            {title: "Até Que o Senhor Venha", artist: "Ministério Zoe", tom: "Am", capo: "", url: "https://www.cifraclub.com.br/ministerio-zoe/ate-que-o-senhor-venha/#key=C%23m"},
+            {title: "Yeshua My Beloved", artist: "Jesus Image Worship", tom: "F", capo: "", url: "https://www.cifraclub.com.br/jesus-image-worship/yeshua-my-beloved/#tabs=false&instrument=keyboard"},
+            {title: "Ruja o Leão / Povo Se Preparem (Fhop)", artist: "Thalita Catanzaro / FHOP", tom: "F#m", capo: "", url: "https://www.cifraclub.com.br/talita-catanzaro/ruja-o-leao/#key=F%23m"},
+            {title: "Teu Reino", artist: "Ministério Cristo Vivo", tom: "E", capo: "", url: "https://www.cifraclub.com.br/ministerio-cristo-vivo/teu-reino/#key=F%23"},
+            {title: "Santo Espírito", artist: "Laura Souguellis", tom: "E", capo: "2ª casa (som em D)", url: "https://www.cifraclub.com.br/laura-souguellis/santo-espirito/#key=D&capo=2"},
+            {title: "Fogo Que Consome", artist: "Carol Braga", tom: "E", capo: "", url: "https://www.cifraclub.com.br/carol-braga/fogo-que-consome/#key=E"},
+            {title: "Ousado Amor", artist: "Emi Sousa", tom: "G", capo: "3ª casa", url: "https://www.cifraclub.com.br/emi-sousa-fhop/ousado-amor/#key=G&capo=3"},
+            {title: "Só Quero Ver Você", artist: "Laura Souguellis", tom: "C", capo: "", url: "https://www.cifraclub.com.br/laura-souguellis/so-quero-ver-voce/#key=C"},
+            {title: "Yeshua", artist: "José Jr.", tom: "D", capo: "", url: "https://www.cifraclub.com.br/jose-augusto-five-music/yeshua/#key=Eb"}
+        ];
 
-const STORAGE_KEY = "cifras18julho_v1";
-let store = {};
-try{ store = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }catch(e){ store = {}; }
-let current = 0;
-let fontSize = parseInt(localStorage.getItem(STORAGE_KEY+"_fs")) || 18;
+        const STORAGE_KEY = "cifras18julho_v1";
+        let store = {};
+        try {store = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};} catch (e) {store = {};}
+        let current = 0;
+        let fontSize = parseInt(localStorage.getItem(STORAGE_KEY + "_fs")) || 18;
 
-const listEl = document.getElementById('songlist');
-const titleText = document.getElementById('titleText');
-const artistText = document.getElementById('artistText');
-const tomBadge = document.getElementById('tomBadge');
-const origLink = document.getElementById('origLink');
-const viewEl = document.getElementById('cifra-view');
-const editEl = document.getElementById('cifra-edit');
-const editBtn = document.getElementById('editBtn');
-const saveBtn = document.getElementById('saveBtn');
-const cancelBtn = document.getElementById('cancelBtn');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
+        const listEl = document.getElementById('songlist');
+        const titleText = document.getElementById('titleText');
+        const artistText = document.getElementById('artistText');
+        const tomBadge = document.getElementById('tomBadge');
+        const origLink = document.getElementById('origLink');
+        const viewEl = document.getElementById('cifra-view');
+        const editEl = document.getElementById('cifra-edit');
+        const editBtn = document.getElementById('editBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
 
-function escapeHtml(str){
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
 
-// Deteta se um "token" isolado parece ser um acorde (C, G7, F#m, Bb, D/F#, Csus4, etc.)
-function isChordToken(tok){
-  if(!tok) return false;
-  return /^[A-G](#|b)?((maj|min|majaug|mMaj|dim|aug|sus|add)?\d{0,2}|m\d{0,2}|m7b5|m7M|7M)*(\/[A-G](#|b)?)?$/.test(tok)
-      && /^[A-G]/.test(tok);
-}
+        // Deteta se um "token" isolado parece ser um acorde (C, G7, F#m, Bb, D/F#, Csus4, etc.)
+        function isChordToken(tok) {
+            if (!tok) return false;
+            return /^[A-G](#|b)?((maj|min|majaug|mMaj|dim|aug|sus|add)?\d{0,2}|m\d{0,2}|m7b5|m7M|7M)*(\/[A-G](#|b)?)?$/.test(tok)
+                && /^[A-G]/.test(tok);
+        }
 
-// Remove parênteses/colchetes à volta de um token, p.ex. "(B" -> "B", "G#m)" -> "G#m"
-function stripBrackets(tok){
-  return tok.replace(/^[(\[]+/, '').replace(/[)\]]+$/, '');
-}
+        // Remove parênteses/colchetes à volta de um token, p.ex. "(B" -> "B", "G#m)" -> "G#m"
+        function stripBrackets(tok) {
+            return tok.replace(/^[(\[]+/, '').replace(/[)\]]+$/, '');
+        }
 
-// Deteta se uma linha inteira é uma "linha de acordes", incluindo padrões como
-// "( B  C#m  G#m ) ( A  B  C#m  G#m )" ou marcadores de repetição tipo "2x"
-function isChordLine(line){
-  const trimmed = line.trim();
-  if(trimmed === '') return false;
-  const tokens = trimmed.split(/\s+/);
-  return tokens.length > 0 && tokens.every(tok => {
-    const core = stripBrackets(tok);
-    if(core === '') return true;           // token era só "(" ou ")"
-    if(/^\d+x$/i.test(core)) return true;  // marcador de repetição, ex: 2x, 4x
-    return isChordToken(core);
-  });
-}
+        // Deteta se uma linha inteira é uma "linha de acordes", incluindo padrões como
+        // "( B  C#m  G#m ) ( A  B  C#m  G#m )" ou marcadores de repetição tipo "2x"
+        function isChordLine(line) {
+            const trimmed = line.trim();
+            if (trimmed === '') return false;
+            const tokens = trimmed.split(/\s+/);
+            return tokens.length > 0 && tokens.every(tok => {
+                const core = stripBrackets(tok);
+                if (core === '') return true;           // token era só "(" ou ")"
+                if (/^\d+x$/i.test(core)) return true;  // marcador de repetição, ex: 2x, 4x
+                return isChordToken(core);
+            });
+        }
 
-// Converte o texto colado em HTML, pintando de vermelho as linhas de acordes
-function buildHighlightedHTML(text){
-  const lines = text.split('\n');
-  return lines.map(line => {
-    if(isChordLine(line)){
-      const parts = line.split(/(\s+)/);
-      return parts.map(p => {
-        if(p.trim() === '') return escapeHtml(p);
-        return '<span class="chord">' + escapeHtml(p) + '</span>';
-      }).join('');
-    }
-    return escapeHtml(line);
-  }).join('\n');
-}
+        // Converte o texto colado em HTML, pintando de vermelho as linhas de acordes
+        function buildHighlightedHTML(text) {
+            const lines = text.split('\n');
+            return lines.map(line => {
+                if (isChordLine(line)) {
+                    const parts = line.split(/(\s+)/);
+                    return parts.map(p => {
+                        if (p.trim() === '') return escapeHtml(p);
+                        return '<span class="chord">' + escapeHtml(p) + '</span>';
+                    }).join('');
+                }
+                return escapeHtml(line);
+            }).join('\n');
+        }
 
-function renderList(){
-  listEl.innerHTML = '';
-  songs.forEach((s, i) => {
-    const li = document.createElement('li');
-    li.className = (i === current ? 'active ' : '') + (store[i] ? 'filled' : 'empty');
-    li.innerHTML = `<span class="num">${i+1}</span><span class="info"><div class="title">${s.destaque ? '★ ' : ''}${s.title}</div><div class="artist">${s.artist}</div></span><span class="tom">${s.tom}</span>`;
-    li.onclick = () => { current = i; render(); };
-    listEl.appendChild(li);
-  });
-}
+        function renderList() {
+            listEl.innerHTML = '';
+            songs.forEach((s, i) => {
+                const li = document.createElement('li');
+                li.className = (i === current ? 'active ' : '') + (store[i] ? 'filled' : 'empty');
+                li.innerHTML = `<span class="num">${i + 1}</span><span class="info"><div class="title">${s.destaque ? '★ ' : ''}${s.title}</div><div class="artist">${s.artist}</div></span><span class="tom">${s.tom}</span>`;
+                li.onclick = () => {current = i; render();};
+                listEl.appendChild(li);
+            });
+        }
 
-function render(){
-  const s = songs[current];
-  titleText.textContent = s.title;
-  artistText.textContent = s.artist + (s.capo ? ' · Capo: ' + s.capo : '');
-  tomBadge.textContent = 'Tom: ' + s.tom;
-  origLink.href = s.url;
+        function render() {
+            const s = songs[current];
+            titleText.textContent = s.title;
+            artistText.textContent = s.artist + (s.capo ? ' · Capo: ' + s.capo : '');
+            tomBadge.textContent = 'Tom: ' + s.tom;
+            origLink.href = s.url;
 
-  const saved = store[current];
-  editEl.style.display = 'none';
-  saveBtn.style.display = 'none';
-  cancelBtn.style.display = 'none';
-  editBtn.style.display = 'inline-block';
+            const saved = store[current];
+            editEl.style.display = 'none';
+            saveBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            editBtn.style.display = 'inline-block';
 
-  if(saved){
-    viewEl.style.display = 'block';
-    viewEl.style.setProperty('--fontsize', fontSize+'px');
-    viewEl.innerHTML = buildHighlightedHTML(saved);
-  } else {
-    viewEl.style.display = 'block';
-    viewEl.innerHTML = `<div class="empty-state">
+            if (saved) {
+                viewEl.style.display = 'block';
+                viewEl.style.setProperty('--fontsize', fontSize + 'px');
+                viewEl.innerHTML = buildHighlightedHTML(saved);
+            } else {
+                viewEl.style.display = 'block';
+                viewEl.innerHTML = `<div class="empty-state">
       <h3>Cifra ainda não adicionada</h3>
       <ol>
         <li>Com internet, abre <a href="${s.url}" target="_blank">${s.url}</a></li>
@@ -276,161 +538,181 @@ function render(){
         <li>Clica em "Guardar" — fica gravado neste computador para usares offline no evento</li>
       </ol>
     </div>`;
-  }
+            }
 
-  prevBtn.disabled = current === 0;
-  nextBtn.disabled = current === songs.length - 1;
-  renderList();
-  window.scrollTo(0,0);
-  document.getElementById('content').scrollTop = 0;
-}
+            prevBtn.disabled = current === 0;
+            nextBtn.disabled = current === songs.length - 1;
+            renderList();
+            window.scrollTo(0, 0);
+            document.getElementById('content').scrollTop = 0;
+        }
 
-editBtn.onclick = () => {
-  editEl.value = store[current] || '';
-  editEl.style.display = 'block';
-  viewEl.style.display = 'none';
-  saveBtn.style.display = 'inline-block';
-  cancelBtn.style.display = 'inline-block';
-  editBtn.style.display = 'none';
-  editEl.focus();
-};
+        editBtn.onclick = () => {
+            editEl.value = store[current] || '';
+            editEl.style.display = 'block';
+            viewEl.style.display = 'none';
+            saveBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'inline-block';
+            editBtn.style.display = 'none';
+            editEl.focus();
+        };
 
-saveBtn.onclick = () => {
-  store[current] = editEl.value;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-  render();
-};
+        saveBtn.onclick = () => {
+            store[current] = editEl.value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+            render();
+        };
 
-cancelBtn.onclick = () => render();
+        cancelBtn.onclick = () => render();
 
-prevBtn.onclick = () => { if(current > 0){ current--; render(); } };
-nextBtn.onclick = () => { if(current < songs.length-1){ current++; render(); } };
+        prevBtn.onclick = () => {if (current > 0) {current--; render();} };
+        nextBtn.onclick = () => {if (current < songs.length - 1) {current++; render();} };
 
-document.getElementById('toggleSidebar').onclick = () => {
-  document.getElementById('sidebar').classList.toggle('collapsed');
-};
+        document.getElementById('toggleSidebar').onclick = () => {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        };
 
-document.getElementById('fontPlus').onclick = () => {
-  fontSize = Math.min(fontSize+2, 40);
-  localStorage.setItem(STORAGE_KEY+"_fs", fontSize);
-  render();
-};
-document.getElementById('fontMinus').onclick = () => {
-  fontSize = Math.max(fontSize-2, 12);
-  localStorage.setItem(STORAGE_KEY+"_fs", fontSize);
-  render();
-};
+        document.getElementById('fontPlus').onclick = () => {
+            fontSize = Math.min(fontSize + 2, 40);
+            localStorage.setItem(STORAGE_KEY + "_fs", fontSize);
+            render();
+        };
+        document.getElementById('fontMinus').onclick = () => {
+            fontSize = Math.max(fontSize - 2, 12);
+            localStorage.setItem(STORAGE_KEY + "_fs", fontSize);
+            render();
+        };
 
-document.getElementById('themeBtn').onclick = () => {
-  document.body.classList.toggle('light');
-  localStorage.setItem(STORAGE_KEY+"_theme", document.body.classList.contains('light') ? 'light':'dark');
-};
-if(localStorage.getItem(STORAGE_KEY+"_theme") === 'light') document.body.classList.add('light');
+        document.getElementById('themeBtn').onclick = () => {
+            document.body.classList.toggle('light');
+            localStorage.setItem(STORAGE_KEY + "_theme", document.body.classList.contains('light') ? 'light' : 'dark');
+        };
+        if (localStorage.getItem(STORAGE_KEY + "_theme") === 'light') document.body.classList.add('light');
 
-// ---- Exportar / Importar CSV ----
-function csvEscape(val){
-  val = String(val ?? '');
-  if(/[",\n\r]/.test(val)){
-    val = '"' + val.replace(/"/g, '""') + '"';
-  }
-  return val;
-}
+        // ---- Exportar / Importar CSV ----
+        function csvEscape(val) {
+            val = String(val ?? '');
+            if (/[",\n\r]/.test(val)) {
+                val = '"' + val.replace(/"/g, '""') + '"';
+            }
+            return val;
+        }
 
-function exportCSV(){
-  const rows = [['indice','titulo','artista','tom','cifra']];
-  songs.forEach((s, i) => {
-    rows.push([i, s.title, s.artist, s.tom, store[i] || '']);
-  });
-  const csvContent = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
-  const blob = new Blob(["\uFEFF" + csvContent], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'cifras-18julho-backup.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+        function exportCSV() {
+            const rows = [['indice', 'titulo', 'artista', 'tom', 'cifra']];
+            songs.forEach((s, i) => {
+                rows.push([i, s.title, s.artist, s.tom, store[i] || '']);
+            });
+            const csvContent = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+            const blob = new Blob(["\uFEFF" + csvContent], {type: 'text/csv;charset=utf-8;'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cifras-18julho-backup.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
 
-// Parser CSV simples que respeita campos entre aspas com quebras de linha e aspas escapadas
-function parseCSV(text){
-  text = text.replace(/^\uFEFF/, '');
-  const rows = [];
-  let row = [];
-  let field = '';
-  let inQuotes = false;
-  for(let i = 0; i < text.length; i++){
-    const c = text[i];
-    if(inQuotes){
-      if(c === '"'){
-        if(text[i+1] === '"'){ field += '"'; i++; }
-        else{ inQuotes = false; }
-      } else {
-        field += c;
-      }
-    } else {
-      if(c === '"'){ inQuotes = true; }
-      else if(c === ','){ row.push(field); field = ''; }
-      else if(c === '\r'){ /* ignora */ }
-      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
-      else { field += c; }
-    }
-  }
-  if(field.length || row.length){ row.push(field); rows.push(row); }
-  return rows;
-}
+        // Parser CSV simples que respeita campos entre aspas com quebras de linha e aspas escapadas
+        function parseCSV(text) {
+            text = text.replace(/^\uFEFF/, '');
+            const rows = [];
+            let row = [];
+            let field = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const c = text[i];
+                if (inQuotes) {
+                    if (c === '"') {
+                        if (text[i + 1] === '"') {field += '"'; i++;}
+                        else {inQuotes = false;}
+                    } else {
+                        field += c;
+                    }
+                } else {
+                    if (c === '"') {inQuotes = true;}
+                    else if (c === ',') {row.push(field); field = '';}
+                    else if (c === '\r') { /* ignora */}
+                    else if (c === '\n') {row.push(field); rows.push(row); row = []; field = '';}
+                    else {field += c;}
+                }
+            }
+            if (field.length || row.length) {row.push(field); rows.push(row);}
+            return rows;
+        }
 
-function importCSV(text){
-  const rows = parseCSV(text);
-  if(!rows.length) return;
-  const header = rows[0].map(h => h.trim().toLowerCase());
-  const idxIndice = header.indexOf('indice');
-  const idxTitulo = header.indexOf('titulo');
-  const idxCifra = header.indexOf('cifra');
-  let count = 0;
+        function importCSV(text, silent) {
+            const rows = parseCSV(text);
+            if (!rows.length) return;
+            const header = rows[0].map(h => h.trim().toLowerCase());
+            const idxIndice = header.indexOf('indice');
+            const idxTitulo = header.indexOf('titulo');
+            const idxCifra = header.indexOf('cifra');
+            let count = 0;
 
-  for(let r = 1; r < rows.length; r++){
-    const row = rows[r];
-    if(!row || row.every(c => c === '')) continue;
-    let targetIndex = -1;
+            for (let r = 1; r < rows.length; r++) {
+                const row = rows[r];
+                if (!row || row.every(c => c === '')) continue;
+                let targetIndex = -1;
 
-    if(idxIndice !== -1 && row[idxIndice] !== undefined && row[idxIndice] !== ''){
-      const n = parseInt(row[idxIndice]);
-      if(!isNaN(n) && songs[n]) targetIndex = n;
-    }
-    if(targetIndex === -1 && idxTitulo !== -1){
-      const t = (row[idxTitulo] || '').trim().toLowerCase();
-      targetIndex = songs.findIndex(s => s.title.trim().toLowerCase() === t);
-    }
-    if(targetIndex !== -1 && idxCifra !== -1 && row[idxCifra]){
-      store[targetIndex] = row[idxCifra];
-      count++;
-    }
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-  render();
-  alert(count + ' cifra(s) importada(s) com sucesso.');
-}
+                if (idxIndice !== -1 && row[idxIndice] !== undefined && row[idxIndice] !== '') {
+                    const n = parseInt(row[idxIndice]);
+                    if (!isNaN(n) && songs[n]) targetIndex = n;
+                }
+                if (targetIndex === -1 && idxTitulo !== -1) {
+                    const t = (row[idxTitulo] || '').trim().toLowerCase();
+                    targetIndex = songs.findIndex(s => s.title.trim().toLowerCase() === t);
+                }
+                if (targetIndex !== -1 && idxCifra !== -1 && row[idxCifra]) {
+                    store[targetIndex] = row[idxCifra];
+                    count++;
+                }
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+            render();
+            if (!silent) alert(count + ' cifra(s) importada(s) com sucesso.');
+        }
 
-document.getElementById('exportBtn').onclick = exportCSV;
-document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
-document.getElementById('importFile').onchange = (e) => {
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => importCSV(ev.target.result);
-  reader.readAsText(file, 'utf-8');
-  e.target.value = '';
-};
+        // Carrega o cifras.csv que está na mesma pasta do index.html (funciona quando
+        // publicado via HTTP, como no GitHub Pages; não funciona abrindo o ficheiro
+        // diretamente com duplo-clique, pois aí não há servidor por trás do fetch).
+        function loadCsvFromFolder(silent) {
+            return fetch('cifras.csv', {cache: 'no-store'})
+                .then(r => {
+                    if (!r.ok) throw new Error('Ficheiro cifras.csv não encontrado (HTTP ' + r.status + ')');
+                    return r.text();
+                })
+                .then(text => importCSV(text, silent))
+                .catch(err => {
+                    if (!silent) alert('Não foi possível carregar cifras.csv: ' + err.message);
+                });
+        }
 
-document.addEventListener('keydown', (e) => {
-  if(document.activeElement === editEl) return;
-  if(e.key === 'ArrowRight') nextBtn.click();
-  if(e.key === 'ArrowLeft') prevBtn.click();
-});
+        document.getElementById('exportBtn').onclick = exportCSV;
+        document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
+        document.getElementById('importFile').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => importCSV(ev.target.result);
+            reader.readAsText(file, 'utf-8');
+            e.target.value = '';
+        };
 
-render();
-</script>
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement === editEl) return;
+            if (e.key === 'ArrowRight') nextBtn.click();
+            if (e.key === 'ArrowLeft') prevBtn.click();
+        });
+
+        render();
+
+        // Ao abrir a página, tenta carregar automaticamente o cifras.csv da mesma pasta
+        // (silencioso: se não existir ou falhar, não incomoda com alertas — fica como está)
+        loadCsvFromFolder(true);
+    </script>
 </body>
+
 </html>
