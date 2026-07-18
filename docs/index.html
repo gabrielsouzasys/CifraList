@@ -341,6 +341,51 @@
             background: var(--border);
         }
 
+        /*ini*/
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 0;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            min-width: 190px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+            z-index: 25;
+            flex-direction: column;
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        .dropdown-menu button {
+            background: none;
+            border: none;
+            color: var(--text);
+            text-align: left;
+            padding: 11px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .dropdown-menu button:hover {
+            background: var(--panel2);
+        }
+
+        /*fim*/
+
+
+
+
+
         /* Mobile */
         @media (max-width:760px) {
             #sidebar {
@@ -394,17 +439,42 @@
 
         <footer>
             <button class="navbtn secondary" id="prevBtn">← Anterior</button>
+
+            <!-- INI -->
             <div class="toolgroup">
-                <button id="editBtn">✎ Editar / Colar cifra</button>
+                <div class="dropdown" id="optionsDropdown">
+                    <button id="optionsBtn">⋯ Opções</button>
+                    <div class="dropdown-menu" id="optionsMenu">
+                        <button id="editBtn">✎ Editar / Colar cifra</button>
+                        <button id="exportBtn">⬇ Exportar CSV</button>
+                        <button id="importBtn">⬆ Importar CSV</button>
+                        <button id="themeBtn">🌙/☀️</button>
+                    </div>
+                </div>
                 <button id="saveBtn" style="display:none;">💾 Guardar</button>
                 <button id="cancelBtn" style="display:none;">Cancelar</button>
                 <button id="fontMinus">A−</button>
                 <button id="fontPlus">A+</button>
-                <button id="themeBtn">🌙/☀️</button>
-                <button id="exportBtn">⬇ Exportar CSV</button>
-                <button id="importBtn">⬆ Importar CSV</button>
+
                 <input type="file" id="importFile" accept=".csv" style="display:none;">
             </div>
+            <!-- FIM -->
+
+
+
+
+
+            <!-- <div class="toolgroup"> -->
+            <!-- <button id="editBtn">✎ Editar / Colar cifra</button> -->
+            <!-- <button id="saveBtn" style="display:none;">💾 Guardar</button>
+                <button id="cancelBtn" style="display:none;">Cancelar</button> -->
+            <!-- <button id="fontMinus">A−</button>
+                <button id="fontPlus">A+</button> -->
+            <!-- <button id="themeBtn">🌙/☀️</button>
+                <button id="exportBtn">⬇ Exportar CSV</button>
+                <button id="importBtn">⬆ Importar CSV</button>
+                <input type="file" id="importFile" accept=".csv" style="display:none;"> -->
+            <!-- </div> -->
             <button class="navbtn" id="nextBtn">Seguinte →</button>
         </footer>
     </div>
@@ -453,6 +523,10 @@
         const cancelBtn = document.getElementById('cancelBtn');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
+
+        const optionsBtn = document.getElementById('optionsBtn');
+        const optionsMenu = document.getElementById('optionsMenu');
+
 
         function escapeHtml(str) {
             return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -548,6 +622,7 @@
         }
 
         editBtn.onclick = () => {
+            optionsMenu.classList.remove('show');
             editEl.value = store[current] || '';
             editEl.style.display = 'block';
             viewEl.style.display = 'none';
@@ -689,9 +764,32 @@
                     if (!silent) alert('Não foi possível carregar cifras.csv: ' + err.message);
                 });
         }
+        //ini
+        // document.getElementById('exportBtn').onclick = exportCSV;
+        // document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
 
-        document.getElementById('exportBtn').onclick = exportCSV;
-        document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
+        document.getElementById('exportBtn').onclick = () => {
+            optionsMenu.classList.remove('show');
+            exportCSV();
+        };
+        document.getElementById('importBtn').onclick = () => {
+            optionsMenu.classList.remove('show');
+            document.getElementById('importFile').click();
+        };
+
+        optionsBtn.onclick = (e) => {
+            e.stopPropagation();
+            optionsMenu.classList.toggle('show');
+        };
+
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('optionsDropdown').contains(e.target)) {
+                optionsMenu.classList.remove('show');
+            }
+        });
+
+        //fim
+
         document.getElementById('importFile').onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
